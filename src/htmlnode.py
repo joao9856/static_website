@@ -2,6 +2,14 @@
 
 class HTMLNode:
     def __init__(self, tag=None, value=None, children=None, props=None):
+        if tag is not None and not isinstance(tag, str):
+            raise ValueError("tag must be a string or None")
+        if value is not None and not isinstance(value, str):
+            raise ValueError("value must be a string or None")
+        if children is not None and not isinstance(children, list):
+            raise ValueError("children must be a list or None")
+        if props is not None and not isinstance(props, dict):
+            raise ValueError("props must be a dictionary or None")
         self.tag = tag
         self.value = value
         self.children = children
@@ -23,14 +31,11 @@ class HTMLNode:
 
 class LeafNode(HTMLNode):
     def __init__(self, tag=None, value=None, props=None):
-        super().__init__(tag, value, props)
-        self.tag = tag
-        self.value = value
-        self.props = props
+        if value == None:
+            raise ValueError("Value can't be None for LeafNode!")
+        super().__init__( tag, value, None, props)
 
     def to_html(self):
-        if self.value == None:
-            raise ValueError
         if self.tag == None:
             return self.value
         if self.props != None:
@@ -39,4 +44,26 @@ class LeafNode(HTMLNode):
                 html_props += f' {key}="{self.props[key]}"'
             return f"<{self.tag}{html_props}>{self.value}</{self.tag}>"
         return f"<{self.tag}>{self.value}</{self.tag}>"
+    
+class ParentNode(HTMLNode):
+    def __init__(self, tag, children, props=None):
+        if tag == None:
+            raise ValueError("Tag can't be None!")
+        if children == None:
+            raise ValueError("Children can't be None!")
+        super().__init__(tag, None, children, props)
+
+    def to_html(self):
+        parent_html = ""
+        
+        for node in self.children:
+            parent_html += node.to_html()
+        if self.props != None:
+            html_props = ""
+            for key in self.props:
+                html_props += f' {key}="{self.props[key]}"'    
+            return f"<{self.tag}{html_props}>{parent_html}</{self.tag}>"
+        return f"<{self.tag}>{parent_html}</{self.tag}>"
+    
+
         
