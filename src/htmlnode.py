@@ -48,9 +48,9 @@ class LeafNode(HTMLNode):
 class ParentNode(HTMLNode):
     def __init__(self, tag, children, props=None):
         if tag == None:
-            raise ValueError("Tag can't be None!")
+            raise ValueError("Tag can't be None for ParentNode!")
         if children == None:
-            raise ValueError("Children can't be None!")
+            raise ValueError("Children can't be None for ParentNode!")
         super().__init__(tag, None, children, props)
 
     def to_html(self):
