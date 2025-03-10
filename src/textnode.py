@@ -1,5 +1,6 @@
 from enum import Enum
 from htmlnode import LeafNode
+from extract_markdown import extract_markdown_images, extract_markdown_links
 
 class TextType(Enum):
     TEXT = "text"
@@ -59,4 +60,85 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
                 new_nodes.append(TextNode(text, text_type))
             elif text != "":
                 new_nodes.append(TextNode(text, TextType.TEXT))
+    return new_nodes
+
+def split_nodes_image(old_nodes):
+    new_nodes = []
+    for node in old_nodes:
+        
+        if node.text_type != TextType.TEXT:
+            new_nodes.append(node)
+            continue
+        image = extract_markdown_images(node.text)
+        image_alt = []
+        image_link = []
+        for item in image:
+            image_alt.append(item[0])
+            image_link.append(item[1])
+        node_text = node.text.split(f"![{image_alt[0]}]({image_link[0]})")
+        for i in range(len(image_alt)):
+            if node_text[0] == "":           
+                new_nodes.append(TextNode(image_alt[i], TextType.IMAGE, image_link[i]))
+                node_text.pop(0)
+                if i+1 != len(image_alt):
+                    node_copy = node_text.copy()
+                    node_text = node_copy[0].split(f"![{image_alt[i+1]}]({image_link[i+1]})")
+                elif node_text[0] != "":
+                    new_nodes.append(TextNode(node_text[0], TextType.TEXT))
+                continue
+            if node_text[0][-1:] == " " and node_text[1][:1] == " ":
+                new_nodes.append(TextNode(node_text[0], TextType.TEXT))
+                new_nodes.append(TextNode(image_alt[i], TextType.IMAGE, image_link[i]))
+                node_text.pop(0)
+                if i+1 != len(image_alt):
+                    node_copy = node_text.copy()
+                    node_text = node_copy[0].split(f"![{image_alt[i+1]}]({image_link[i+1]})")
+                else:
+                    new_nodes.append(TextNode(node_text[0], TextType.TEXT))
+                continue
+            if node_text[1] == "":           
+                new_nodes.append(TextNode(node_text[0], TextType.TEXT))
+                new_nodes.append(TextNode(image_alt[i], TextType.IMAGE, image_link[i]))
+    return new_nodes
+
+
+
+
+
+def split_nodes_link(old_nodes):
+    new_nodes = []
+    for node in old_nodes:
+        if node.text_type != TextType.TEXT:
+            new_nodes.append(node)
+            continue
+        image = extract_markdown_links(node.text)
+        link_alt = []
+        link_link = []
+        for item in image:
+            link_alt.append(item[0])
+            link_link.append(item[1])
+        node_text = node.text.split(f"![{link_alt[0]}]({link_link[0]})")
+        for i in range(len(link_alt)):
+            if node_text[0] == "":           
+                new_nodes.append(TextNode(link_alt[i], TextType.LINK, link_link[i]))
+                node_text.pop(0)
+                if i+1 != len(link_alt):
+                    node_copy = node_text.copy()
+                    node_text = node_copy[0].split(f"![{link_alt[i+1]}]({link_link[i+1]})")
+                elif node_text[0] != "":
+                    new_nodes.append(TextNode(node_text[0], TextType.TEXT))
+                continue
+            if node_text[0][-1:] == " " and node_text[1][:1] == " ":
+                new_nodes.append(TextNode(node_text[0], TextType.TEXT))
+                new_nodes.append(TextNode(link_alt[i], TextType.LINK, link_link[i]))
+                node_text.pop(0)
+                if i+1 != len(link_alt):
+                    node_copy = node_text.copy()
+                    node_text = node_copy[0].split(f"![{link_alt[i+1]}]({link_link[i+1]})")
+                else:
+                    new_nodes.append(TextNode(node_text[0], TextType.TEXT))
+                continue
+            if node_text[1] == "":           
+                new_nodes.append(TextNode(node_text[0], TextType.TEXT))
+                new_nodes.append(TextNode(link_alt[i], TextType.LINK, link_link[i]))
     return new_nodes

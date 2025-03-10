@@ -1,6 +1,6 @@
 import unittest
 
-from textnode import TextNode, TextType, text_node_to_html_node, split_nodes_delimiter
+from textnode import TextNode, TextType, text_node_to_html_node, split_nodes_delimiter, split_nodes_image, split_nodes_link
 
 class TestTextNode(unittest.TestCase):
     def test_eq(self):
@@ -179,6 +179,46 @@ class TestTextNodeSplitter(unittest.TestCase):
             ],
             new_nodes
         )
+
+
+class TestSplitNodesImagesAndLinks(unittest.TestCase):
+
+    def test_split_images(self):
+        node = TextNode(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode(
+                    "second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"
+                ),
+            ],
+            new_nodes,
+        )
+
+    def test_split_images2(self):
+        node = TextNode(
+            "![image](https://i.imgur.com/zjjcJKZ.png)![image2](https://i.imgur.com/zjjcJKZ2.png)![second image](https://i.imgur.com/3elNhQu.png)![second image2](https://i.imgur.com/3elNhQu2.png)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode("image2", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ2.png"),
+                TextNode("second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"),
+                TextNode("second image2", TextType.IMAGE, "https://i.imgur.com/3elNhQu2.png")
+            ],
+            new_nodes
+        )
+
+
+
 
 if __name__ == "__main__":
     unittest.main()
