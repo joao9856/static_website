@@ -1,6 +1,6 @@
 import unittest
 
-from textnode import TextNode, TextType, text_node_to_html_node, split_nodes_delimiter, split_nodes_image, split_nodes_link
+from textnode import TextNode, TextType, text_node_to_html_node, split_nodes_delimiter, split_nodes_image, split_nodes_link, text_to_textnodes
 
 class TestTextNode(unittest.TestCase):
     def test_eq(self):
@@ -217,7 +217,37 @@ class TestSplitNodesImagesAndLinks(unittest.TestCase):
             new_nodes
         )
 
+class TestTextToTextNodes(unittest.TestCase):
+    def test_one_of_each(self):
+        node = text_to_textnodes("This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)")
+        self.assertEqual(node, [
+    TextNode("This is ", TextType.TEXT),
+    TextNode("text", TextType.BOLD),
+    TextNode(" with an ", TextType.TEXT),
+    TextNode("italic", TextType.ITALIC),
+    TextNode(" word and a ", TextType.TEXT),
+    TextNode("code block", TextType.CODE),
+    TextNode(" and an ", TextType.TEXT),
+    TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+    TextNode(" and a ", TextType.TEXT),
+    TextNode("link", TextType.LINK, "https://boot.dev")
+])
 
+    def test_one_of_each_out_of_order(self):
+        self.maxDiff = None
+        node = text_to_textnodes("This is _italic_ with an **text** word and a `code block` and an [link](https://boot.dev) and a ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg)")
+        self.assertEqual(node, [
+    TextNode("This is ", TextType.TEXT),
+    TextNode("italic", TextType.ITALIC),
+    TextNode(" with an ", TextType.TEXT),
+    TextNode("text", TextType.BOLD),
+    TextNode(" word and a ", TextType.TEXT),
+    TextNode("code block", TextType.CODE),
+    TextNode(" and an ", TextType.TEXT),
+    TextNode("link", TextType.LINK, "https://boot.dev"),
+    TextNode(" and a ", TextType.TEXT),
+    TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+])
 
 
 if __name__ == "__main__":

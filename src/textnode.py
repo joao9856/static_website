@@ -53,7 +53,7 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             new_nodes.append(node)
             continue
         if delimiter not in node.text:
-            raise ValueError(f"No markdown in text for indicated delimiter.")
+            new_nodes.append(node)
         node_text = node.text.split(delimiter)
         for text in node_text:
             if f"{delimiter}{text.strip()}{delimiter}" in node.text:           
@@ -66,10 +66,15 @@ def split_nodes_image(old_nodes):
     new_nodes = []
     for node in old_nodes:
         
-        if node.text_type != TextType.TEXT:
+        if node.text_type != TextType.TEXT and node not in new_nodes:
             new_nodes.append(node)
             continue
+        if node in new_nodes:
+            continue
         image = extract_markdown_images(node.text)
+        if len(image) == 0:
+            new_nodes.append(node)
+            continue
         image_alt = []
         image_link = []
         for item in image:
@@ -108,23 +113,28 @@ def split_nodes_image(old_nodes):
 def split_nodes_link(old_nodes):
     new_nodes = []
     for node in old_nodes:
-        if node.text_type != TextType.TEXT:
+        if node.text_type != TextType.TEXT and node not in new_nodes:
             new_nodes.append(node)
             continue
-        image = extract_markdown_links(node.text)
+        if node in new_nodes:
+            continue
+        link = extract_markdown_links(node.text)
+        if len(link) == 0:
+            new_nodes.append(node)
+            continue
         link_alt = []
         link_link = []
-        for item in image:
+        for item in link:
             link_alt.append(item[0])
             link_link.append(item[1])
-        node_text = node.text.split(f"![{link_alt[0]}]({link_link[0]})")
+        node_text = node.text.split(f"[{link_alt[0]}]({link_link[0]})")
         for i in range(len(link_alt)):
             if node_text[0] == "":           
                 new_nodes.append(TextNode(link_alt[i], TextType.LINK, link_link[i]))
                 node_text.pop(0)
                 if i+1 != len(link_alt):
                     node_copy = node_text.copy()
-                    node_text = node_copy[0].split(f"![{link_alt[i+1]}]({link_link[i+1]})")
+                    node_text = node_copy[0].split(f"[{link_alt[i+1]}]({link_link[i+1]})")
                 elif node_text[0] != "":
                     new_nodes.append(TextNode(node_text[0], TextType.TEXT))
                 continue
@@ -134,7 +144,7 @@ def split_nodes_link(old_nodes):
                 node_text.pop(0)
                 if i+1 != len(link_alt):
                     node_copy = node_text.copy()
-                    node_text = node_copy[0].split(f"![{link_alt[i+1]}]({link_link[i+1]})")
+                    node_text = node_copy[0].split(f"[{link_alt[i+1]}]({link_link[i+1]})")
                 else:
                     new_nodes.append(TextNode(node_text[0], TextType.TEXT))
                 continue
@@ -142,3 +152,16 @@ def split_nodes_link(old_nodes):
                 new_nodes.append(TextNode(node_text[0], TextType.TEXT))
                 new_nodes.append(TextNode(link_alt[i], TextType.LINK, link_link[i]))
     return new_nodes
+
+
+def text_to_textnodes(text):
+    bold_nodes = split_nodes_delimiter([TextNode(text, TextType.TEXT)], "**", TextType.BOLD)
+    italic_nodes = split_nodes_delimiter(bold_nodes, "_", TextType.ITALIC)
+    code_nodes = split_nodes_delimiter(italic_nodes,"`",TextType.CODE)
+    image_nodes = split_nodes_image(code_nodes)
+    link_nodes = split_nodes_link(image_nodes)
+
+    for i in range(len(link_nodes)-1,0,-1):
+        if link_nodes[i] in link_nodes[:i-1]:
+            link_nodes.pop(i)
+    return link_nodes
