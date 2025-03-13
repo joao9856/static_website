@@ -1,3 +1,12 @@
+from enum import Enum
+
+class BlockType(Enum):
+    PARAGRAPH = "paragraph"
+    HEADING = "heading"
+    CODE = "code"
+    QUOTE = "quote"
+    ULIST = "unordered_list"
+    OLIST = "ordered_list"
 
 
 def markdown_to_blocks(markdown):
@@ -14,3 +23,28 @@ def markdown_to_blocks(markdown):
             if cleansub != "":
                 cleanblock.append(cleansub)
     return cleanblock
+
+def block_to_block_type(block):
+    lines = block.split("\n")
+
+    if block.startswith(("#", "##", "###", "####", "#####", "######")):
+        return BlockType.HEADING
+    if lines[0].startswith("```") and lines[-1].startswith("```") and len(lines) > 1:
+        return BlockType.CODE
+    q = 1
+    u = 1
+    o = 1
+    for line in lines:
+        if line.startswith(">"):
+            q += 1
+            if q == len(lines):
+                return BlockType.QUOTE
+        if line.startswith("- "):
+            u += 1
+            if u == len(lines):
+                return BlockType.ULIST
+        if line.startswith(f"{o}. "):
+            o += 1
+            if o == len(lines):
+                return BlockType.OLIST
+    return BlockType.PARAGRAPH
