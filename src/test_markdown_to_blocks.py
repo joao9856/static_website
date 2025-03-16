@@ -1,6 +1,6 @@
 import unittest
 
-from markdown_to_blocks import markdown_to_blocks, block_to_block_type, BlockType
+from markdown_to_blocks import markdown_to_blocks, block_to_block_type, BlockType, extract_title
 
 class TestMarkdownToBlocks(unittest.TestCase):
 
@@ -97,6 +97,15 @@ class TestBlockToBlockType(unittest.TestCase):
         self.assertEqual(block_to_block_type(block), BlockType.OLIST)
         block = "paragraph"
         self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)    
+
+class TestGeneratePage(unittest.TestCase):
+
+    def test_extract_title(self):
+        title = "# H1 Title"
+        self.assertEqual(extract_title(title), "H1 Title")
+        title = "## H2 Title"
+        with self.assertRaises(ValueError):
+            extract_title(title)
 
 
 if __name__ == "__main__":

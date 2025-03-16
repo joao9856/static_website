@@ -48,3 +48,10 @@ def block_to_block_type(block):
             if o == len(lines):
                 return BlockType.OLIST
     return BlockType.PARAGRAPH
+
+def extract_title(markdown):
+    blocks = markdown_to_blocks(markdown)
+    for block in blocks:
+        if block.startswith("# "):
+            return block[2:]
+    raise ValueError("No H1 title present")
