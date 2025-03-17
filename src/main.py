@@ -40,6 +40,18 @@ def generate_page(from_path, template_path, dest_path):
                 os.mkdir(base_path)
     with open(dest_path, "w") as f:
         f.write(new_page)
+
+def content_checker(base_from, base_dest):
+    paths = []
+    for path in os.listdir(base_from):
+        if os.path.isfile(os.path.join(base_from, path)):
+            if path.endswith(".md"):
+                paths.append([os.path.join(base_from, path), os.path.join(base_dest, path.replace(".md", ".html"))])
+            continue
+        if os.path.isdir(os.path.join(base_from, path)):
+            paths.extend(content_checker(os.path.join(base_from, path), os.path.join(base_dest, path)))
+    return paths
+        
         
 def main():
     #node = TextNode("This is some anchor text", TextType.LINK, "https://www.boot.dev")
@@ -48,6 +60,14 @@ def main():
     #print(type(os.path.dirname(__file__)))
     #print(os.listdir(os.getcwd()))
     static_to_public()
-    generate_page(os.path.join(os.getcwd(), "content/index.md"), os.path.join(os.getcwd(), "template.html"), os.path.join(os.getcwd(), "public/index.html"))
+    
+    base_from = os.path.join(os.getcwd(), "content")
+    template = os.path.join(os.getcwd(), "template.html")
+    base_dest = os.path.join(os.getcwd(), "public")
+    
+    paths = content_checker(base_from, base_dest)
+    
+    for path in paths:
+        generate_page(path[0], template, path[1])
 if __name__ == "__main__":
     main()
