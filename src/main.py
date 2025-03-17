@@ -1,11 +1,12 @@
 from textnode import TextNode, TextType, split_nodes_delimiter, split_nodes_image, split_nodes_link, text_to_textnodes
-import os, shutil
+import os, shutil, sys
 from markdown_to_html_node import markdown_to_html_node
 from markdown_to_blocks import extract_title
 
+basepath = sys.argv[0]
 
 def static_to_public():
-    public_path = os.path.join(os.getcwd(), "public")
+    public_path = os.path.join(os.getcwd(), "docs")
     if os.path.exists(public_path):
         shutil.rmtree(public_path)
         os.mkdir(public_path)
@@ -23,14 +24,14 @@ def copy_to_public(from_path, to_path):
         os.mkdir(os.path.join(to_path, path))
         copy_to_public(os.path.join(from_path, path), os.path.join(to_path, path))
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
     with open(from_path) as f:
         markdown = f.read()
     with open(template_path) as f:
         template = f.read()
     htmlstring = markdown_to_html_node(markdown).to_html()
-    new_page = template.replace("{{ Title }}", extract_title(markdown)).replace("{{ Content }}", htmlstring)
+    new_page = template.replace('src="/', f'src="{basepath}').replace('href="/', f'href="{basepath}').replace("{{ Title }}", extract_title(markdown)).replace("{{ Content }}", htmlstring)
     split_path = dest_path.split("/")
     base_path = os.getcwd()
     for path in split_path:
@@ -59,15 +60,20 @@ def main():
     #print(os.path.dirname(__file__))
     #print(type(os.path.dirname(__file__)))
     #print(os.listdir(os.getcwd()))
+    global basepath
+    if basepath == "":
+        basepath = "/"
+    print(basepath, "debug")
+
     static_to_public()
     
     base_from = os.path.join(os.getcwd(), "content")
     template = os.path.join(os.getcwd(), "template.html")
-    base_dest = os.path.join(os.getcwd(), "public")
+    base_dest = os.path.join(os.getcwd(), "docs")
     
     paths = content_checker(base_from, base_dest)
     
     for path in paths:
-        generate_page(path[0], template, path[1])
+        generate_page(path[0], template, path[1], basepath)
 if __name__ == "__main__":
     main()
