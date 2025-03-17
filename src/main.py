@@ -31,7 +31,7 @@ def generate_page(from_path, template_path, dest_path, basepath):
     with open(template_path) as f:
         template = f.read()
     htmlstring = markdown_to_html_node(markdown).to_html()
-    new_page = template.replace('src="/', f'src="{basepath}').replace('href="/', f'href="{basepath}').replace("{{ Title }}", extract_title(markdown)).replace("{{ Content }}", htmlstring)
+    new_page = template.replace("{{ Title }}", extract_title(markdown)).replace("{{ Content }}", htmlstring).replace('src="/', f'src="{basepath}').replace('href="/', f'href="{basepath}')
     split_path = dest_path.split("/")
     base_path = os.getcwd()
     for path in split_path:
