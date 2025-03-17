@@ -3,7 +3,7 @@ import os, shutil, sys
 from markdown_to_html_node import markdown_to_html_node
 from markdown_to_blocks import extract_title
 
-basepath = sys.argv[0]
+basepath = sys.argv[1]
 
 def static_to_public():
     public_path = os.path.join(os.getcwd(), "docs")
@@ -61,9 +61,10 @@ def main():
     #print(type(os.path.dirname(__file__)))
     #print(os.listdir(os.getcwd()))
     global basepath
+    print(basepath, "debug")
     if basepath == "":
         basepath = "/"
-    print(basepath, "debug")
+    
 
     static_to_public()
     
